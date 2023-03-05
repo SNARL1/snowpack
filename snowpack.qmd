@@ -7,7 +7,7 @@ editor: visual
 
 This file creates a dataset of the annual snowpack in Dana Meadows, Yosemite National Park.
 The data is from the Dana Meadows snow course (snow course number = DAN), and the annual 01-April data for the period 1927-to-present is downloaded from the California Data Exchange center using this [link](http://cdec.water.ca.gov/cgi-progs/snowQuery?course_num=dan&month=April&start_date=&end_date=&csv_mode=Y&data_wish=Retrieve+Data).
-I read the query results into
+Save the data displayed in browser window (right-click \> Save Page As...) and don't add a file extension.
 
 ```{r}
 library(tidyverse)
