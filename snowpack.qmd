@@ -1,0 +1,102 @@
+---
+title: "Historical snowpack"
+author: "Roland Knapp"
+format: html
+editor: visual
+---
+
+This file creates a dataset of the annual snowpack in Dana Meadows, Yosemite National Park.
+The data is from the Dana Meadows snow course (snow course number = DAN), and the annual 01-April data for the period 1927-to-present is downloaded from the California Data Exchange center using this [link](http://cdec.water.ca.gov/cgi-progs/snowQuery?course_num=dan&month=April&start_date=&end_date=&csv_mode=Y&data_wish=Retrieve+Data).
+I read the query results into
+
+```{r}
+library(tidyverse)
+library(lubridate)
+```
+
+### Create dataset
+
+Note that the data are in inches.
+
+```{r}
+snowpack <- read_csv("snowQuery", na = "--") %>% 
+  mutate(Adjusted = ifelse(is.na(Adjusted), Water, Adjusted),
+         year = year(my(Date)),
+         date_measure = ymd(dmy(Meas.Date))) %>% 
+  rename(snow_depth = Depth,
+         swe = Water,
+         swe_adj = Adjusted) %>% 
+  select(year, date_measure, snow_depth, swe, swe_adj)
+  
+```
+
+-   year: year in which 01-April snow course measurement was made
+
+-   date_measure: date on with 01-April snow course measurement was made
+
+-   snow_depth: snow depth from snow course, in inches
+
+-   swe: snow water equivalent from snow course
+
+-   swe_adj: snow water equivalent from snow course, adjusted by jurisdiction that collected data
+
+-   swe_pave: adjusted snow water equivalent, as a percentage of the average
+
+### Add current-year snowpack from snow pillow
+
+To include current snowpack measured prior to 01-April, use daily data from DAN [snow pillow](https://cdec.water.ca.gov/dynamicapp/QueryDaily).
+
+```{r}
+snow_current <- tibble("year" = 2023, date_measure = ymd("2023-03-04"), snow_depth = 146, swe = 39.03, swe_adj = 48.75)
+
+snowpack <- bind_rows(snowpack, snow_current)
+```
+
+### Calculate snowpack as percent of long-term average
+
+```{r}
+swe_ave <- snowpack %>% 
+  filter(year != 2023) %>% 
+  summarise(swe_mean = mean(swe_adj))
+
+snowpack <- snowpack %>% 
+  mutate(swe_pave = (swe_adj / swe_ave$swe_mean) * 100)
+```
+
+### Plot data
+
+```{r}
+# Plot of snowpack from 1927 to current year
+snowpack %>% 
+  ggplot(aes(x = year, y = swe_pave)) +
+  geom_line() + 
+  geom_point() +
+  scale_x_continuous(breaks = seq(1925, 2025, 10)) +
+  labs(x = "Year", y = "Snow water equivalent (% of average)") +
+  geom_hline(yintercept = 100, color = "red")
+
+```
+
+```{r}
+snowpack %>% 
+  ggplot(aes(x = year, y = swe_adj)) +
+  geom_line() + 
+  geom_point() +
+  scale_x_continuous(breaks = seq(1925, 2025, 10)) +
+  labs(x = "Year", y = "Snow water equivalent (inches)") +
+  geom_hline(yintercept = swe_ave$swe_mean, color = "red")
+
+```
+
+```{r}
+# Plot of snowpack from 2000 to current year 
+snowpack %>% 
+  filter(year >= 2000) %>% 
+  ggplot(aes(x = year, y = swe_pave)) +
+  geom_line() + 
+  geom_point() +
+  scale_x_continuous(breaks = seq(2000, 2024, 1), minor_breaks = NULL) + 
+  labs(x = "Year", y = "Snow water equivalent (% of average)") +
+  geom_hline(yintercept = 100, color = "red") +
+  theme(axis.text.x = element_text(angle = 90))
+```
