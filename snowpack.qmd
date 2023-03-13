@@ -4,8 +4,6 @@ author: "Roland Knapp"
 format: 
   html: 
     embed-resources: true
-excecute:
-  keep-md: true
 editor: visual
 ---
 
