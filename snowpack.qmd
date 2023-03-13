@@ -1,7 +1,11 @@
 ---
 title: "Historical snowpack"
 author: "Roland Knapp"
-format: html
+format: 
+  html: 
+    embed-resources: true
+excecute:
+  keep-md: true
 editor: visual
 ---
 
@@ -47,7 +51,7 @@ snowpack <- read_csv("snowQuery", na = "--") %>%
 To include current snowpack measured prior to 01-April, use daily data from DAN [snow pillow](https://cdec.water.ca.gov/dynamicapp/QueryDaily).
 
 ```{r}
-snow_current <- tibble("year" = 2023, date_measure = ymd("2023-03-04"), snow_depth = 146, swe = 39.03, swe_adj = 48.75)
+snow_current <- tibble("year" = 2023, date_measure = ymd("2023-03-12"), snow_depth = 176, swe = 47.72, swe_adj = 57.44)
 
 snowpack <- bind_rows(snowpack, snow_current)
 ```
